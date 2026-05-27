@@ -38,8 +38,8 @@ def home(request : Request):
 def get_one_post(post_id : int, request : Request): 
     for p in posts:
         if p.get("id") == post_id:
-            return templates.TemplateResponse(request, "post.html", {"post": p, "title" : p["title"][50:]})
-    return templates.TemplateResponse(request, "error.html", {"status_code": 404, "message": "Post you are looking for is not exist"})
+            return templates.TemplateResponse(request, "post.html", {"post": p, "title" : p["title"][:50]})
+    raise HTTPException(status_code=404, detail="Post you are looking for does not exist")
 
 
 ## API CLIENTS SHOULD GET A JSON RESPONSE
@@ -52,7 +52,7 @@ def get_post(post_id : int, request : Request):
     for x in posts:
         if x.get("id") == post_id:
             return x
-    return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -74,5 +74,23 @@ def general_http_exception_handler(request: Request, exception: StarletteHTTPExc
             "message": message
         },
         status_code=exception.status_code,
-        
+
+    )
+
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(request : Request, exception : RequestValidationError):
+    if request.url.path.startswith("/api"):
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={"detail": exception.errors()}
+        )
+    return templates.TemplateResponse(
+        request,
+        "error.html",
+        {
+            "status_code" : status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "title": status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "message": "Invalid request. Please check your input and try again"
+        },
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT
     )

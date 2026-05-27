@@ -2,7 +2,7 @@
 {% block content %}
 <article class="content-section py-3 px-4 mb-4">
     <h1>
-        <a class="article-title" href="#">Oops... {{ status_code }}</a>
+        <a class="article-title" href="{{url_for('home')}}">Oops... {{ status_code }} (back)</a>
     </h1>
     <p class="article-content">{{message}}</p>
 </article>
