@@ -52,7 +52,7 @@ app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 @app.get("/posts", include_in_schema=False)
 async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(
-        select(models.Post).options(selectinload(models.Post.author))
+        select(models.Post).order_by(models.Post.date_posted).options(selectinload(models.Post.author))
     )
     posts = result.scalars().all()
     return templates.TemplateResponse(
@@ -64,7 +64,7 @@ async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
 async def get_one_post(
     post_id: int, request: Request, db: Annotated[AsyncSession, Depends(get_db)]
 ):
-    result = await db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(select(models.Post).where(models.Post.id == post_id).options(selectinload(models.Post.author)))
     post = result.scalars().first()
     if not post:
         raise HTTPException(
