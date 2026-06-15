@@ -164,7 +164,7 @@ async def delete_user(user_id: int, current_user: CurrentUser, db: Annotated[Asy
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    db.delete(user)
+    await db.delete(user)
     await db.commit()
 
 
