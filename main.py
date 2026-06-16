@@ -27,8 +27,8 @@ from config import settings
 async def lifespan(_app: FastAPI):
     # Startup
     # async with engine.begin() as conn:
-        # await conn.run_sync(Base.metadata.create_all) -> createall does not allow to migration which is bad for production
-    
+    # await conn.run_sync(Base.metadata.create_all) -> createall does not allow to migration which is bad for production
+
     yield
     # ShutDown
     await engine.dispose()
@@ -38,8 +38,6 @@ app = FastAPI(lifespan=lifespan)
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-app.mount("/media", StaticFiles(directory="media"), name="media")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -57,13 +55,23 @@ async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
     total = count_result.scalar() or 0
 
     result = await db.execute(
-        select(models.Post).options(selectinload(models.Post.author)).order_by(models.Post.date_posted).limit(settings.posts_per_page)
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .order_by(models.Post.date_posted)
+        .limit(settings.posts_per_page)
     )
     posts = result.scalars().all()
 
     has_more = len(posts) < total
     return templates.TemplateResponse(
-        request, "home.html", {"posts": posts, "title": "Home", "limit" : settings.posts_per_page, "has_more": has_more}
+        request,
+        "home.html",
+        {
+            "posts": posts,
+            "title": "Home",
+            "limit": settings.posts_per_page,
+            "has_more": has_more,
+        },
     )
 
 
@@ -71,7 +79,11 @@ async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
 async def get_one_post(
     post_id: int, request: Request, db: Annotated[AsyncSession, Depends(get_db)]
 ):
-    result = await db.execute(select(models.Post).where(models.Post.id == post_id).options(selectinload(models.Post.author)))
+    result = await db.execute(
+        select(models.Post)
+        .where(models.Post.id == post_id)
+        .options(selectinload(models.Post.author))
+    )
     post = result.scalars().first()
     if not post:
         raise HTTPException(
@@ -129,38 +141,30 @@ async def user_posts_page(
 
 @app.get("/login", include_in_schema=False)
 async def login_page(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "login.html",
-        {"title": "login"}
-    )
+    return templates.TemplateResponse(request, "login.html", {"title": "login"})
+
 
 @app.get("/register", include_in_schema=False)
 async def register_page(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "register.html",
-        {"title": "Register"}
-    )
+    return templates.TemplateResponse(request, "register.html", {"title": "Register"})
+
 
 @app.get("/account", include_in_schema=False)
 async def account_page(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "account.html",
-        {"title": "Account"}
-    )
+    return templates.TemplateResponse(request, "account.html", {"title": "Account"})
+
 
 @app.get("/forgot-password", include_in_schema=False)
-async def forgot_password_page(request : Request):
-    return templates.TemplateResponse(request, "forgot_password.html", {"title": "Forgot Password"})
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse(
+        request, "forgot_password.html", {"title": "Forgot Password"}
+    )
+
 
 @app.get("/reset-password", include_in_schema=False)
-async def reset_password_page(request : Request):
+async def reset_password_page(request: Request):
     response = templates.TemplateResponse(
-        request,
-        "reset_password.html",
-        {"title": "Reset Password"}
+        request, "reset_password.html", {"title": "Reset Password"}
     )
     response.headers["Referrer-Policy"] = "no-referrer"
     return response
