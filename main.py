@@ -26,8 +26,9 @@ from config import settings
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # async with engine.begin() as conn:
+        # await conn.run_sync(Base.metadata.create_all) -> createall does not allow to migration which is bad for production
+    
     yield
     # ShutDown
     await engine.dispose()
