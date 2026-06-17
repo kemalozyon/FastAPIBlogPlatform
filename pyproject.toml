@@ -21,3 +21,9 @@ dependencies = [
     "python-multipart>=0.0.32",
     "uvicorn>=0.48.0",
 ]
+
+[dependency-groups]
+dev = [
+    "moto[s3]>=5.2.2",
+    "pytest>=9.1.0",
+]
