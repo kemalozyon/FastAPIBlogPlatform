@@ -23,6 +23,17 @@
   /* Sizing */
   --article-img-size: 4rem; /* 64px converted to rem */
   --account-img-size: 7.813rem; /* 125px converted to rem */
+  --content-max-width: 46rem; /* comfortable single-column reading width */
+
+  /* Radius */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+}
+
+/* Centered single-column layout (sidebar removed) */
+.content-column {
+  max-width: var(--content-max-width);
 }
 
 /* Base Styles */
@@ -83,15 +94,17 @@ button:focus-visible {
 .content-section {
   background: var(--color-bg-content);
   border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05);
-  transition: box-shadow 0.15s ease, transform 0.15s ease,
-    border-color 0.15s ease;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.18s ease, transform 0.18s ease,
+    border-color 0.18s ease;
 }
 
-.content-section:hover {
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+/* Only lift interactive post cards, not static form/panel sections */
+article.content-section:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
   border-color: var(--color-border-light);
+  transform: translateY(-3px);
 }
 
 /* Articles */
@@ -108,7 +121,23 @@ a.article-title:focus {
 
 .article-content {
   white-space: pre-line;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
+  line-height: 1.65;
+}
+
+.read-more {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-weight: 600;
+  color: var(--color-link-hover);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.read-more:hover,
+.read-more:focus {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .article-img {
@@ -292,4 +321,57 @@ a.article-title:focus {
 .modal-header.bg-success .modal-title,
 .modal-header.bg-danger .modal-title {
   color: #ffffff !important;
+}
+
+/* ── Modern UI polish ─────────────────────────────────────────── */
+
+/* Navbar: subtle depth + refined brand */
+.site-header .navbar {
+  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.12);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Buttons: softer corners, weightier text, tactile press */
+.btn {
+  --bs-btn-border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: transform 0.12s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* Form controls: rounded fields with an on-brand focus ring */
+.form-control {
+  border-radius: var(--radius-sm);
+}
+
+.form-control:focus {
+  border-color: var(--color-steel);
+  box-shadow: 0 0 0 0.2rem rgba(82, 124, 159, 0.2);
+}
+
+/* Modals: rounded, borderless, soft elevation */
+.modal-content {
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .content-section,
+  article.content-section:hover,
+  .btn,
+  .btn:active {
+    transition: none;
+    transform: none;
+  }
 }

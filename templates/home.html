@@ -14,7 +14,10 @@
         <h2>
           <a class="article-title" href="{{url_for('get_one_post', post_id=post.id)}}">{{ post.title }}</a>
         </h2>
-        <p class="article-content">{{ post.content }}</p>
+        <p class="article-content">{{ post.content | truncate(preview_length, False, "…", 0) }}</p>
+        {% if post.content | length > preview_length %}
+        <a class="read-more" href="{{ url_for('get_one_post', post_id=post.id) }}">Read more →</a>
+        {% endif %}
       </div>
     </div>
 
@@ -32,11 +35,12 @@
 
 {% block scripts %}
 <script type="module">
-  import { escapeHtml, formatDate } from '/static/js/utils.js';
+  import { escapeHtml, formatDate, truncateText } from '/static/js/utils.js';
 
   // Pagination state - initialized from server-rendered values
   let currentOffset = {{ limit }};  // Start after server-rendered posts
   const limit = {{ limit }};
+  const previewLength = {{ preview_length }};
   let hasMore = {{ 'true' if has_more else 'false' }};
 
   const postsContainer = document.getElementById('postsContainer');
@@ -44,6 +48,11 @@
 
   // Create HTML for a single post (matching server-rendered structure)
   function createPostHTML(post) {
+    const isTruncated = post.content.length > previewLength;
+    const preview = isTruncated ? truncateText(post.content, previewLength) : post.content;
+    const readMore = isTruncated
+      ? `<a class="read-more" href="/posts/${post.id}">Read more →</a>`
+      : '';
     return `
       <article class="content-section py-3 px-4 mb-4">
         <div class="d-flex align-items-start gap-4">
@@ -56,7 +65,8 @@
             <h2>
               <a class="article-title" href="/posts/${post.id}">${escapeHtml(post.title)}</a>
             </h2>
-            <p class="article-content">${escapeHtml(post.content)}</p>
+            <p class="article-content">${escapeHtml(preview)}</p>
+            ${readMore}
           </div>
         </div>
       </article>
