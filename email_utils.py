@@ -1,8 +1,7 @@
 import logging
 
-import boto3
+import httpx
 from fastapi.templating import Jinja2Templates
-from starlette.concurrency import run_in_threadpool
 
 from config import settings
 
@@ -10,36 +9,7 @@ logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="templates")
 
-
-def _get_ses_client():
-    return boto3.client(
-        "ses",
-        region_name=settings.ses_region,
-        aws_access_key_id=(settings.s3_access_key_id.get_secret_value() if settings.s3_access_key_id else None),
-        aws_secret_access_key=(settings.s3_secret_access_key.get_secret_value() if settings.s3_secret_access_key else None),
-    )
-
-
-def _send_via_ses(
-        to_email: str,
-        subject: str,
-        plain_text: str,
-        html_content: str | None = None,
-) -> None:
-    ses = _get_ses_client()
-
-    body: dict = {"Text": {"Data": plain_text, "Charset": "UTF-8"}}
-    if html_content:
-        body["Html"] = {"Data": html_content, "Charset": "UTF-8"}
-
-    ses.send_email(
-        Source=settings.mail_from,
-        Destination={"ToAddresses": [to_email]},
-        Message={
-            "Subject": {"Data": subject, "Charset": "UTF-8"},
-            "Body": body,
-        },
-    )
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
 
 async def send_email(
@@ -48,10 +18,30 @@ async def send_email(
         plain_text : str,
         html_content: str | None = None
 ) -> None:
-    # boto3 is blocking, so hop to a threadpool to avoid stalling the event loop.
-    await run_in_threadpool(
-        _send_via_ses, to_email, subject, plain_text, html_content
-    )
+    payload: dict = {
+        "sender": {"email": settings.mail_from},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "textContent": plain_text,
+    }
+    if html_content:
+        payload["htmlContent"] = html_content
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        response = await client.post(
+            BREVO_API_URL,
+            headers={
+                "api-key": settings.brevo_api_key.get_secret_value(),
+                "accept": "application/json",
+                "content-type": "application/json",
+            },
+            json=payload,
+        )
+        if response.is_error:
+            # Brevo puts the real reason (bad key, unverified sender, ...) in the
+            # body, which raise_for_status() would otherwise discard.
+            logger.error("Brevo API %s: %s", response.status_code, response.text)
+        response.raise_for_status()
 
 
 async def send_password_reset_email(to_email: str, username: str, token: str) -> None:

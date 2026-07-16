@@ -26,8 +26,8 @@ class Settings(BaseSettings):
 
     reset_token_expire_minutes : int = 60
 
+    brevo_api_key : SecretStr = SecretStr("")
     mail_from : str = "noreply@example.com"
-    ses_region : str = "eu-north-1"
 
     frontend_url : str = "http://localhost:8000"
     
