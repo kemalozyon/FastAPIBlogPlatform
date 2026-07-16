@@ -22,15 +22,12 @@ class Settings(BaseSettings):
     max_upload_size_bytes : int = 5 * 1024 * 1024
 
     posts_per_page: int = 10
+    post_preview_length: int = 200
 
     reset_token_expire_minutes : int = 60
 
-    mail_server : str = "smtp.gmail.com"
-    mail_port : int = 587
-    mail_username : str = ""
-    mail_password : SecretStr = SecretStr("")
     mail_from : str = "noreply@example.com"
-    mail_use_tls : bool = True
+    ses_region : str = "eu-north-1"
 
     frontend_url : str = "http://localhost:8000"
     

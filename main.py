@@ -79,6 +79,7 @@ async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
             "posts": posts,
             "title": "Home",
             "limit": settings.posts_per_page,
+            "preview_length": settings.post_preview_length,
             "has_more": has_more,
         },
     )

@@ -27,6 +27,15 @@ export function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Truncate text at a word boundary, appending an ellipsis when shortened.
+export function truncateText(text, maxLength) {
+  if (text.length <= maxLength) return text;
+  const sliced = text.slice(0, maxLength);
+  const lastSpace = sliced.lastIndexOf(" ");
+  const cut = lastSpace > 0 ? sliced.slice(0, lastSpace) : sliced;
+  return cut.trimEnd() + "…";
+}
+
 export function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
